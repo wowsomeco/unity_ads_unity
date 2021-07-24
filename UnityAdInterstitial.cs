@@ -1,41 +1,29 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Advertisements;
 
 namespace Wowsome.Ads {
   public class UnityAdInterstitial : MonoBehaviour, IInterstitial {
-    [Serializable]
-    public struct Model {
-      public string gameIdIOS;
-      public string gameIdAndroid;
-      public int showOrder;
-
-      public string GameId {
-        get {
-          string gameId = Application.platform == RuntimePlatform.Android ? gameIdAndroid : gameIdIOS;
-          return gameId.Trim();
-        }
-      }
-    }
+    public int Order => data.showOrder;
 
     public Model data;
 
-    #region IInterstitial
-    public int Order => data.showOrder;
-
     public void InitInterstitial() {
-      Advertisement.Initialize(data.GameId);
+      if (!Advertisement.isInitialized) {
+        Advertisement.Initialize(data.GameId, false, true);
+      } else {
+        Advertisement.Load(data.PlacementId);
+      }
     }
 
     public void UpdateInterstitial(float dt) { }
 
     public bool ShowInterstitial() {
-      if (Advertisement.IsReady()) {
+      if (Advertisement.IsReady(data.PlacementId)) {
         Advertisement.Show();
         return true;
       }
+
       return false;
     }
-    #endregion
   }
 }

@@ -3,53 +3,41 @@ using UnityEngine;
 using UnityEngine.Advertisements;
 
 namespace Wowsome.Ads {
-  public class UnityAdReward : MonoBehaviour, IReward, IUnityAdsLoadListener, IUnityAdsShowListener {
-    [Serializable]
-    public struct Model {
-      public string GameId {
-        get {
-          string gameId = Application.platform == RuntimePlatform.Android ? gameIdAndroid : gameIdIOS;
-          return gameId.Trim();
-        }
-      }
-
-      public string gameIdIOS;
-      public string gameIdAndroid;
-      public string placementId;
-      public int showOrder;
-    }
-
+  public class UnityAdReward : MonoBehaviour, IReward, IUnityAdsLoadListener, IUnityAdsShowListener, IUnityAdsInitializationListener {
     public Action OnRewarded { get; set; }
-
     public int Order => data.showOrder;
 
     public Model data;
 
     public void InitReward() {
       if (!Advertisement.isInitialized) {
-        Advertisement.Initialize(data.GameId, this);
+        Advertisement.Initialize(data.GameId, true, true, this);
+      } else {
+        Load();
       }
-
-      Advertisement.Load(data.placementId, this);
     }
 
     public bool ShowReward() {
-      if (!Advertisement.IsReady()) {
-        return false;
-      }
+      if (!Advertisement.IsReady(data.PlacementId)) return false;
 
-      Advertisement.Show(data.placementId);
+      Advertisement.Show(data.PlacementId, this);
       return true;
     }
+
+    public void OnInitializationComplete() {
+      Load();
+    }
+
+    public void OnInitializationFailed(UnityAdsInitializationError error, string message) { }
 
     public void OnUnityAdsAdLoaded(string placementId) { }
 
     public void OnUnityAdsFailedToLoad(string placementId, UnityAdsLoadError error, string message) {
-      Advertisement.Load(data.placementId, this);
+      Load();
     }
 
     public void OnUnityAdsShowFailure(string placementId, UnityAdsShowError error, string message) {
-      Advertisement.Load(data.placementId, this);
+      Load();
     }
 
     public void OnUnityAdsShowStart(string placementId) { }
@@ -57,9 +45,15 @@ namespace Wowsome.Ads {
     public void OnUnityAdsShowClick(string placementId) { }
 
     public void OnUnityAdsShowComplete(string placementId, UnityAdsShowCompletionState showCompletionState) {
-      if (data.placementId.CompareStandard(placementId)) {
+      if (placementId.CompareStandard(data.PlacementId) && showCompletionState == UnityAdsShowCompletionState.COMPLETED) {
         OnRewarded?.Invoke();
       }
+
+      Load();
+    }
+
+    void Load() {
+      Advertisement.Load(data.PlacementId, this);
     }
   }
 }
