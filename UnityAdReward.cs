@@ -9,16 +9,24 @@ namespace Wowsome.Ads {
 
     public Model data;
 
+    bool _isLoaded = false;
+
     public void InitReward() {
       if (!Advertisement.isInitialized) {
-        Advertisement.Initialize(data.GameId, true, true, this);
+        bool testMode = false;
+
+#if UNITY_EDITOR
+        testMode = true;
+#endif
+
+        Advertisement.Initialize(data.GameId, testMode, this);
       } else {
         Load();
       }
     }
 
     public bool ShowReward() {
-      if (!Advertisement.IsReady(data.PlacementId)) return false;
+      if (!_isLoaded) return false;
 
       Advertisement.Show(data.PlacementId, this);
       return true;
@@ -30,7 +38,9 @@ namespace Wowsome.Ads {
 
     public void OnInitializationFailed(UnityAdsInitializationError error, string message) { }
 
-    public void OnUnityAdsAdLoaded(string placementId) { }
+    public void OnUnityAdsAdLoaded(string placementId) {
+      _isLoaded = true;
+    }
 
     public void OnUnityAdsFailedToLoad(string placementId, UnityAdsLoadError error, string message) {
       Load();
