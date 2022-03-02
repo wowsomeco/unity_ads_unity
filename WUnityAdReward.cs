@@ -1,35 +1,38 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Advertisements;
+using Wowsome.Generic;
 
 namespace Wowsome.Ads {
-  public class UnityAdReward : MonoBehaviour, IReward, IUnityAdsLoadListener, IUnityAdsShowListener, IUnityAdsInitializationListener {
-    public bool IsLoaded { get; private set; }
-    public Action OnRewarded { get; set; }
-    public int Order => data.showOrder;
+  public class WUnityAdReward : MonoBehaviour, IAd, IUnityAdsLoadListener, IUnityAdsShowListener, IUnityAdsInitializationListener {
+    public WObservable<bool> IsLoaded { get; private set; } = new WObservable<bool>(false);
+    public AdType Type => AdType.Rewarded;
 
-    public Model data;
+    public UnityPlacementModel data;
 
-    public void InitReward() {
-      if (!Advertisement.isInitialized) {
-        bool testMode = false;
+    Action _onDone = null;
 
-#if UNITY_EDITOR
-        testMode = true;
-#endif
-
-        Advertisement.Initialize(data.GameId, testMode, this);
-      } else {
-        Load();
-      }
+    public void InitAd(IAdsProvider provider) {
+      Load();
     }
 
-    public bool ShowReward() {
-      if (!IsLoaded) return false;
+    public bool ShowAd(Action onDone = null) {
+      if (!IsLoaded.Value) {
+        Load();
+
+        return false;
+      }
+
+      _onDone = onDone;
 
       Advertisement.Show(data.PlacementId, this);
+
       return true;
     }
+
+    public void OnDisabled() { }
+
+    #region Unity Ad Listeners
 
     public void OnInitializationComplete() {
       Load();
@@ -38,7 +41,7 @@ namespace Wowsome.Ads {
     public void OnInitializationFailed(UnityAdsInitializationError error, string message) { }
 
     public void OnUnityAdsAdLoaded(string placementId) {
-      IsLoaded = true;
+      IsLoaded.Next(true);
     }
 
     public void OnUnityAdsFailedToLoad(string placementId, UnityAdsLoadError error, string message) {
@@ -55,13 +58,18 @@ namespace Wowsome.Ads {
 
     public void OnUnityAdsShowComplete(string placementId, UnityAdsShowCompletionState showCompletionState) {
       if (placementId.CompareStandard(data.PlacementId) && showCompletionState == UnityAdsShowCompletionState.COMPLETED) {
-        OnRewarded?.Invoke();
+        _onDone?.Invoke();
+        _onDone = null;
       }
 
       Load();
     }
 
+    #endregion
+
     void Load() {
+      IsLoaded.Next(false);
+
       Advertisement.Load(data.PlacementId, this);
     }
   }

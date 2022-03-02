@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Wowsome.Ads {
   [Serializable]
-  public struct Model {
+  public struct UnityGameModel {
     public string GameId {
       get {
         string gameId = Application.platform == RuntimePlatform.Android ? gameIdAndroid : gameIdIOS;
@@ -11,6 +11,12 @@ namespace Wowsome.Ads {
       }
     }
 
+    public string gameIdIOS;
+    public string gameIdAndroid;
+  }
+
+  [Serializable]
+  public struct UnityPlacementModel {
     public string PlacementId {
       get {
         string placementId = Application.platform == RuntimePlatform.Android ? placementIdAndroid : placementIdIOS;
@@ -18,10 +24,7 @@ namespace Wowsome.Ads {
       }
     }
 
-    public string gameIdIOS;
-    public string gameIdAndroid;
     public string placementIdIOS;
     public string placementIdAndroid;
-    public int showOrder;
   }
 }
