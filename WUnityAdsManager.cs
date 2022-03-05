@@ -8,15 +8,9 @@ namespace Wowsome.Ads {
     public override void InitAdsProvider(WAdSystem adSystem) {
       base.InitAdsProvider(adSystem);
 
-      if (adSystem.IsDisabled.Value) return;
+      if (adSystem.IsDisabled.Value || isDisabled) return;
 
-      bool testMode = true;
-
-#if UNITY_EDITOR
-      testMode = true;
-#endif
-
-      Advertisement.Initialize(model.GameId, testMode, this);
+      Advertisement.Initialize(model.GameId, isTestMode, this);
     }
 
     public void OnInitializationComplete() {
