@@ -10,6 +10,11 @@ namespace Wowsome.Ads {
 
       if (adSystem.IsDisabled.Value || isDisabled) return;
 
+      MetaData metaData = new MetaData("privacy");
+      // This app is directed at children; no users will receive personalized ads.
+      metaData.Set("mode", "app");
+      Advertisement.SetMetaData(metaData);
+      // init
       Advertisement.Initialize(model.GameId, isTestMode, this);
     }
 
