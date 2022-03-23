@@ -5,10 +5,12 @@ using Wowsome.Generic;
 
 namespace Wowsome.Ads {
   public class WUnityAdInterstitial : MonoBehaviour, IAd, IUnityAdsLoadListener, IUnityAdsShowListener {
+    public int Priority => priority;
     public WObservable<bool> IsLoaded { get; private set; } = new WObservable<bool>(false);
     public AdType Type => AdType.Interstitial;
 
     public UnityPlacementModel data;
+    public int priority;
 
     public void InitAd(IAdsProvider provider) {
       LoadAd();
